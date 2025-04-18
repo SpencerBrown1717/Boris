@@ -1,4 +1,4 @@
-const { Anthropic } = require('@anthropic-ai/sdk');
+const Anthropic = require('@anthropic-ai/sdk');
 const Logger = require('../utils/logger');
 
 class ClaudeClient {
@@ -8,7 +8,7 @@ class ClaudeClient {
     }
     
     this.client = new Anthropic({
-      apiKey: apiKey || process.env.CLAUDE_API_KEY
+      apiKey: apiKey
     });
     this.logger = new Logger();
     this.maxRetries = 3;
@@ -25,22 +25,21 @@ class ClaudeClient {
       try {
         this.logger.debug(`Attempt ${attempt} to complete prompt`);
         
-        const response = await this.client.messages.create({
+        const message = await this.client.messages.create({
           model: options.model || 'claude-3-opus-20240229',
           max_tokens: options.maxTokens || 1000,
-          messages: [
-            {
-              role: 'user',
-              content: prompt
-            }
-          ]
+          system: "You are a helpful AI assistant that provides clear and concise responses.",
+          messages: [{
+            role: 'user',
+            content: prompt
+          }]
         });
 
-        if (!response?.content?.[0]?.text) {
+        if (!message?.content) {
           throw new Error('Invalid response format from Claude API');
         }
 
-        return response.content[0].text;
+        return message.content;
       } catch (error) {
         lastError = error;
         this.logger.warn(`Attempt ${attempt} failed:`, error);

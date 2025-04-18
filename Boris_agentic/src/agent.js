@@ -38,15 +38,24 @@ class Agent {
 
   async think(task) {
     try {
-      const prompt = `Analyze the following task and create a plan: ${task.description}`;
+      const prompt = `Task: ${task.description}\n\nAnalyze this task and create a plan. Respond with a JSON object containing an array of steps, where each step has a 'tool' and 'params' field.`;
       const response = await this.claude.complete(prompt, {
         model: this.model
       });
       
-      return {
-        steps: JSON.parse(response),
-        tools: this.tools
-      };
+      try {
+        const plan = JSON.parse(response);
+        return {
+          steps: plan.steps || [],
+          tools: this.tools
+        };
+      } catch (error) {
+        this.logger.error('Failed to parse Claude response:', error);
+        return {
+          steps: [],
+          tools: this.tools
+        };
+      }
     } catch (error) {
       this.logger.error('Thinking phase failed:', error);
       throw error;

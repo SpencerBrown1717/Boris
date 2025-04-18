@@ -1,11 +1,18 @@
+require('dotenv').config();
 const { Agent } = require('../index');
+const config = require('../config');
 
 async function runSimpleTask() {
   try {
-    // Initialize agent
+    // Initialize agent with configuration
     const agent = new Agent({
       name: 'Borris',
-      model: 'claude-3-opus-20240229'
+      model: config.claude.model,
+      claudeApiKey: config.claude.apiKey,
+      e2bApiKey: config.e2b.apiKey,
+      logger: {
+        level: 'debug'
+      }
     });
 
     // Define a simple task
